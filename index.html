@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Farbharmonie</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #111111;
+    --muted: #6b6b6b;
+    --line: #e2e2e2;
+    --surface: #f5f5f5;
+    --accent: #2f6fed;
+    --radius: 8px;
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+  }
+
+  h1 {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0;
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 1px solid var(--line);
+  }
+
+  h2 {
+    font-size: 13px;
+    font-weight: 600;
+    margin: 0 0 var(--space-3);
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: var(--space-6);
+  }
+
+  /* ---- Input section ---- */
+  #inputSection {
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: var(--space-4);
+    margin-bottom: var(--space-8);
+  }
+
+  .field-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) 0;
+  }
+
+  .field-row + .field-row {
+    border-top: 1px solid var(--line);
+  }
+
+  .field-label {
+    flex: 0 0 120px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  input[type="color"] {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    background: none;
+  }
+
+  input[type="text"].hex-input {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    width: 100px;
+    color: var(--fg);
+    transition: border-color 180ms ease-out;
+  }
+
+  input[type="text"].hex-input:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  #exportBtn {
+    margin-top: var(--space-4);
+    width: 100%;
+    background: var(--fg);
+    color: var(--bg);
+    border: none;
+    border-radius: var(--radius);
+    padding: var(--space-3) var(--space-4);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 150ms ease-out;
+  }
+
+  #exportBtn:hover { opacity: 0.85; }
+
+  /* ---- Harmony groups ---- */
+  .harmony-group {
+    margin-bottom: var(--space-8);
+  }
+
+  .swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-3);
+  }
+
+  @media (max-width: 600px) {
+    .swatch-grid { grid-template-columns: 1fr; }
+    .field-label { flex-basis: 96px; }
+  }
+
+  .swatch-row {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .swatch-color {
+    height: 64px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .swatch-color .copied-flag {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    font-size: 11px;
+    opacity: 0;
+    transition: opacity 150ms ease-out;
+    pointer-events: none;
+  }
+
+  .swatch-color.copied .copied-flag { opacity: 1; }
+
+  .swatch-info {
+    padding: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .swatch-hex {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    width: fit-content;
+  }
+
+  .contrast-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .contrast-chip {
+    width: 16px;
+    height: 16px;
+    border-radius: var(--space-1);
+    border: 1px solid var(--line);
+    flex-shrink: 0;
+  }
+
+  .wcag-badge {
+    display: inline-block;
+    padding: 1px var(--space-2);
+    border-radius: var(--space-1);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .wcag-badge.aaa { background: #e6f0ff; color: #1b4fb5; }
+  .wcag-badge.aa { background: #eef2f5; color: #3d4f5c; }
+  .wcag-badge.fail { background: #f5f5f5; color: #999; }
+</style>
+</head>
+<body>
+
+<h1>Farbharmonie</h1>
+
+<main>
+  <div id="inputSection">
+    <div class="field-row">
+      <div class="field-label">Basisfarbe</div>
+      <input type="color" id="baseColorPicker">
+      <input type="text" class="hex-input" id="baseColorHex" maxlength="7">
+    </div>
+    <div class="field-row">
+      <div class="field-label">Textfarbe 1</div>
+      <input type="color" id="textColor1Picker">
+      <input type="text" class="hex-input" id="textColor1Hex" maxlength="7">
+    </div>
+    <div class="field-row">
+      <div class="field-label">Textfarbe 2</div>
+      <input type="color" id="textColor2Picker">
+      <input type="text" class="hex-input" id="textColor2Hex" maxlength="7">
+    </div>
+    <button id="exportBtn">Palette als ASE exportieren</button>
+  </div>
+
+  <div id="groups"></div>
+</main>
+
+<script>
+(() => {
+  const baseColorPicker = document.getElementById('baseColorPicker');
+  const baseColorHex = document.getElementById('baseColorHex');
+  const textColor1Picker = document.getElementById('textColor1Picker');
+  const textColor1Hex = document.getElementById('textColor1Hex');
+  const textColor2Picker = document.getElementById('textColor2Picker');
+  const textColor2Hex = document.getElementById('textColor2Hex');
+  const groupsEl = document.getElementById('groups');
+  const exportBtn = document.getElementById('exportBtn');
+
+  const state = {
+    baseHex: '#2F6FED',
+    textColor1Hex: '#000000',
+    textColor2Hex: '#FFFFFF',
+  };
+
+  let currentGroups = [];
+
+  // ---------- Color space conversions ----------
+
+  function srgbToLinear(c) {
+    c /= 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+
+  function hexToRgb(hex) {
+    const n = parseInt(hex.slice(1), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+
+  function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('').toUpperCase();
+  }
+
+  function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+      h = s = 0;
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+        case g: h = (b - r) / d + 2; break;
+        default: h = (r - g) / d + 4;
+      }
+      h /= 6;
+    }
+    return [h * 360, s * 100, l * 100];
+  }
+
+  function hslToRgb(h, s, l) {
+    h = ((h % 360) + 360) % 360 / 360;
+    s /= 100; l /= 100;
+    if (s === 0) {
+      const v = Math.round(l * 255);
+      return [v, v, v];
+    }
+    const hue2rgb = (p, q, t) => {
+      if (t < 0) t += 1;
+      if (t > 1) t -= 1;
+      if (t < 1 / 6) return p + (q - p) * 6 * t;
+      if (t < 1 / 2) return q;
+      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+      return p;
+    };
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    return [
+      Math.round(hue2rgb(p, q, h + 1 / 3) * 255),
+      Math.round(hue2rgb(p, q, h) * 255),
+      Math.round(hue2rgb(p, q, h - 1 / 3) * 255),
+    ];
+  }
+
+  function normalizeHex(value) {
+    let v = value.trim();
+    if (!v.startsWith('#')) v = '#' + v;
+    return /^#[0-9a-fA-F]{6}$/.test(v) ? v.toUpperCase() : null;
+  }
+
+  // ---------- Contrast / WCAG ----------
+
+  function relativeLuminance(r, g, b) {
+    const rl = srgbToLinear(r), gl = srgbToLinear(g), bl = srgbToLinear(b);
+    return 0.2126 * rl + 0.7152 * gl + 0.0722 * bl;
+  }
+
+  function contrastRatio(rgb1, rgb2) {
+    const l1 = relativeLuminance(...rgb1);
+    const l2 = relativeLuminance(...rgb2);
+    const lighter = Math.max(l1, l2), darker = Math.min(l1, l2);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  function wcagRating(ratio) {
+    if (ratio >= 7) return { label: 'AAA', cls: 'aaa' };
+    if (ratio >= 4.5) return { label: 'AA', cls: 'aa' };
+    return { label: 'Fail', cls: 'fail' };
+  }
+
+  // ---------- Harmony calculation ----------
+
+  function computeHarmonies(hsl) {
+    const [h, s, l] = hsl;
+    const rot = deg => hslToRgb(h + deg, s, l);
+    return [
+      { key: 'complementary', label: 'Komplementär', colors: [rot(0), rot(180)] },
+      { key: 'analogous', label: 'Analog', colors: [rot(0), rot(30), rot(-30)] },
+      { key: 'triadic', label: 'Triade', colors: [rot(0), rot(120), rot(240)] },
+      { key: 'splitComplementary', label: 'Split-Complementary', colors: [rot(0), rot(150), rot(210)] },
+      { key: 'tetradic', label: 'Tetradisch', colors: [rot(0), rot(90), rot(180), rot(270)] },
+    ];
+  }
+
+  // ---------- Rendering ----------
+
+  function render() {
+    const baseRgb = hexToRgb(state.baseHex);
+    const hsl = rgbToHsl(...baseRgb);
+    currentGroups = computeHarmonies(hsl);
+
+    groupsEl.innerHTML = '';
+    for (const group of currentGroups) {
+      const section = document.createElement('section');
+      section.className = 'harmony-group';
+
+      const h2 = document.createElement('h2');
+      h2.textContent = group.label;
+      section.appendChild(h2);
+
+      const grid = document.createElement('div');
+      grid.className = 'swatch-grid';
+      for (const rgb of group.colors) {
+        grid.appendChild(buildSwatch(rgb));
+      }
+      section.appendChild(grid);
+
+      groupsEl.appendChild(section);
+    }
+  }
+
+  function buildSwatch(rgb) {
+    const hex = rgbToHex(...rgb);
+    const textRgb1 = hexToRgb(state.textColor1Hex);
+    const textRgb2 = hexToRgb(state.textColor2Hex);
+
+    const row = document.createElement('div');
+    row.className = 'swatch-row';
+
+    const colorBox = document.createElement('div');
+    colorBox.className = 'swatch-color';
+    colorBox.style.background = hex;
+    colorBox.title = 'Klicken zum Kopieren';
+    const flag = document.createElement('div');
+    flag.className = 'copied-flag';
+    flag.textContent = 'kopiert';
+    colorBox.appendChild(flag);
+    colorBox.addEventListener('click', () => copyText(hex, colorBox));
+
+    const info = document.createElement('div');
+    info.className = 'swatch-info';
+
+    const hexEl = document.createElement('div');
+    hexEl.className = 'swatch-hex';
+    hexEl.textContent = hex;
+    hexEl.title = 'Klicken zum Kopieren';
+    hexEl.addEventListener('click', () => copyText(hex, colorBox));
+
+    info.appendChild(hexEl);
+    info.appendChild(buildContrastItem(rgb, state.textColor1Hex, textRgb1));
+    info.appendChild(buildContrastItem(rgb, state.textColor2Hex, textRgb2));
+
+    row.appendChild(colorBox);
+    row.appendChild(info);
+    return row;
+  }
+
+  function buildContrastItem(rgb, textHex, textRgb) {
+    const ratio = contrastRatio(rgb, textRgb);
+    const rating = wcagRating(ratio);
+
+    const item = document.createElement('div');
+    item.className = 'contrast-item';
+
+    const chip = document.createElement('div');
+    chip.className = 'contrast-chip';
+    chip.style.background = textHex;
+
+    const badge = document.createElement('span');
+    badge.className = 'wcag-badge ' + rating.cls;
+    badge.textContent = rating.label;
+
+    item.appendChild(chip);
+    item.appendChild(document.createTextNode(ratio.toFixed(2) + ':1'));
+    item.appendChild(badge);
+
+    return item;
+  }
+
+  function copyText(text, boxEl) {
+    const done = () => {
+      boxEl.classList.add('copied');
+      setTimeout(() => boxEl.classList.remove('copied'), 1000);
+    };
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+  }
+
+  function fallbackCopy(text, done) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { /* ignore */ }
+    document.body.removeChild(ta);
+  }
+
+  // ---------- Input wiring ----------
+
+  function wireColorInput(picker, hexInput, key) {
+    picker.value = state[key];
+    hexInput.value = state[key];
+
+    picker.addEventListener('input', () => {
+      state[key] = picker.value.toUpperCase();
+      hexInput.value = state[key];
+      render();
+    });
+
+    hexInput.addEventListener('change', () => {
+      const normalized = normalizeHex(hexInput.value);
+      if (normalized) {
+        state[key] = normalized;
+        picker.value = normalized;
+        hexInput.value = normalized;
+        render();
+      } else {
+        hexInput.value = state[key];
+      }
+    });
+  }
+
+  wireColorInput(baseColorPicker, baseColorHex, 'baseHex');
+  wireColorInput(textColor1Picker, textColor1Hex, 'textColor1Hex');
+  wireColorInput(textColor2Picker, textColor2Hex, 'textColor2Hex');
+
+  // ---------- ASE export ----------
+
+  function buildAseFile(groups) {
+    const blocks = [];
+    for (const group of groups) {
+      blocks.push(buildGroupStartBlock(group.label));
+      group.colors.forEach((rgb, i) => {
+        blocks.push(buildColorBlock(rgbToHex(...rgb), { r: rgb[0], g: rgb[1], b: rgb[2] }));
+      });
+      blocks.push(buildGroupEndBlock());
+    }
+
+    const totalLength = 4 + 2 + 2 + 4 + blocks.reduce((sum, b) => sum + b.byteLength, 0);
+    const buffer = new ArrayBuffer(totalLength);
+    const view = new DataView(buffer);
+    let offset = 0;
+
+    writeAscii(view, offset, 'ASEF'); offset += 4;
+    view.setUint16(offset, 1); offset += 2; // version major
+    view.setUint16(offset, 0); offset += 2; // version minor
+    view.setUint32(offset, blocks.length); offset += 4; // number of blocks
+
+    const bytes = new Uint8Array(buffer);
+    for (const block of blocks) {
+      bytes.set(new Uint8Array(block), offset);
+      offset += block.byteLength;
+    }
+
+    return buffer;
+  }
+
+  function buildColorBlock(name, { r, g, b }) {
+    const nameChars = name + '\0';
+    const nameLen = nameChars.length;
+
+    const dataLength = 2 + nameLen * 2 + 4 + 12 + 2;
+    const totalBlock = 2 + 4 + dataLength;
+
+    const buffer = new ArrayBuffer(totalBlock);
+    const view = new DataView(buffer);
+    let offset = 0;
+
+    view.setUint16(offset, 0x0001); offset += 2; // color entry block type
+    view.setUint32(offset, dataLength); offset += 4;
+
+    view.setUint16(offset, nameLen); offset += 2;
+    for (let i = 0; i < nameChars.length; i++) {
+      view.setUint16(offset, nameChars.charCodeAt(i)); offset += 2;
+    }
+
+    writeAscii(view, offset, 'RGB '); offset += 4;
+
+    view.setFloat32(offset, r / 255); offset += 4;
+    view.setFloat32(offset, g / 255); offset += 4;
+    view.setFloat32(offset, b / 255); offset += 4;
+
+    view.setUint16(offset, 2); offset += 2; // color type: 2 = normal
+
+    return buffer;
+  }
+
+  function buildGroupStartBlock(name) {
+    const nameChars = name + '\0';
+    const nameLen = nameChars.length;
+
+    const dataLength = 2 + nameLen * 2;
+    const totalBlock = 2 + 4 + dataLength;
+
+    const buffer = new ArrayBuffer(totalBlock);
+    const view = new DataView(buffer);
+    let offset = 0;
+
+    view.setUint16(offset, 0xC001); offset += 2; // group start block type
+    view.setUint32(offset, dataLength); offset += 4;
+
+    view.setUint16(offset, nameLen); offset += 2;
+    for (let i = 0; i < nameChars.length; i++) {
+      view.setUint16(offset, nameChars.charCodeAt(i)); offset += 2;
+    }
+
+    return buffer;
+  }
+
+  function buildGroupEndBlock() {
+    const buffer = new ArrayBuffer(6);
+    const view = new DataView(buffer);
+    view.setUint16(0, 0xC002); // group end block type
+    view.setUint32(2, 0); // no data
+    return buffer;
+  }
+
+  function writeAscii(view, offset, str) {
+    for (let i = 0; i < str.length; i++) {
+      view.setUint8(offset + i, str.charCodeAt(i));
+    }
+  }
+
+  exportBtn.addEventListener('click', () => {
+    const buffer = buildAseFile(currentGroups);
+    const blob = new Blob([buffer], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'farbharmonie.ase';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  render();
+})();
+</script>
+
+</body>
+</html>
